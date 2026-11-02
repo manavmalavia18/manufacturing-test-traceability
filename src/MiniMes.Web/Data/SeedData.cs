@@ -32,5 +32,32 @@ public static class SeedData
         {
             await service.SubmitAsync(sample);
         }
+
+        var serials = samples.Select(x => x.SerialNumber).ToArray();
+        foreach (var serial in serials)
+        {
+            db.MaterialLots.AddRange(
+                CreateLot(serial, "Control PCB", "PCB-CTRL-210", "PCB-260930-A", "Internal Assembly", new DateOnly(2026, 9, 30)),
+                CreateLot(serial, "Power transformer", "MAG-28V-004", "MAG-261005-B", "Approved Supplier A", new DateOnly(2026, 10, 5)),
+                CreateLot(serial, "Power MOSFET", "FET-100V-017", "FET-261014-7", "Approved Supplier B", new DateOnly(2026, 10, 14)));
+        }
+
+        await db.SaveChangesAsync();
     }
+
+    private static MaterialLot CreateLot(
+        string serialNumber,
+        string component,
+        string partNumber,
+        string lotCode,
+        string supplier,
+        DateOnly receivedDate) => new()
+        {
+            SerialNumber = serialNumber,
+            Component = component,
+            PartNumber = partNumber,
+            LotCode = lotCode,
+            Supplier = supplier,
+            ReceivedDate = receivedDate
+        };
 }

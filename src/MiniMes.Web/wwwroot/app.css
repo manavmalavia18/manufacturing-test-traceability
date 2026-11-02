@@ -120,6 +120,31 @@ button { border-radius: 7px; padding: .7rem .95rem; cursor: pointer; border: 1px
 .design-notes li { color: var(--muted); font-size: .73rem; }
 .design-notes span { color: var(--green); margin-right: .55rem; }
 
+.traceability-panel { margin-bottom: 1rem; }
+.trace-search { display: flex; align-items: end; gap: .75rem; margin-bottom: 1.15rem; }
+.trace-search label { flex: 1; max-width: 520px; }
+.genealogy-summary {
+    display: grid; grid-template-columns: 1fr 1fr 1.5fr .7fr; gap: 1px;
+    background: var(--border); border: 1px solid var(--border); border-radius: 8px;
+    overflow: hidden; margin-bottom: 1rem;
+}
+.genealogy-summary > div { background: #0d141d; padding: .75rem .85rem; }
+.genealogy-summary span, .genealogy-summary strong { display: block; }
+.genealogy-summary span { color: #657589; font-size: .6rem; letter-spacing: .09em; text-transform: uppercase; }
+.genealogy-summary strong { font: 500 .78rem "IBM Plex Mono"; margin-top: .35rem; }
+.lot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .75rem; }
+.lot-card { border: 1px solid var(--border); background: #0d141d; border-radius: 8px; padding: .9rem; display: grid; grid-template-columns: 30px 1fr; gap: .7rem; }
+.lot-icon { width: 30px; height: 30px; display: grid; place-items: center; color: var(--cyan); background: var(--cyan-soft); border: 1px solid rgba(50,213,232,.22); border-radius: 6px; }
+.lot-title span, .lot-title strong { display: block; }
+.lot-title span { color: var(--text); font-size: .74rem; }
+.lot-title strong { color: var(--muted); font: 500 .65rem "IBM Plex Mono"; margin-top: .2rem; }
+.lot-card dl { grid-column: 1 / -1; margin: .3rem 0 0; display: grid; gap: .42rem; }
+.lot-card dl div { display: flex; justify-content: space-between; gap: 1rem; border-top: 1px solid rgba(37,49,65,.55); padding-top: .42rem; }
+.lot-card dt { color: #617185; font-size: .62rem; }
+.lot-card dd { color: var(--muted); font: .62rem "IBM Plex Mono"; margin: 0; text-align: right; }
+.trace-note { color: #556579; font-size: .63rem; margin: .8rem 0 0; }
+.trace-empty { color: var(--amber); border: 1px solid rgba(244,189,80,.2); background: rgba(244,189,80,.06); border-radius: 7px; padding: .8rem; font-size: .74rem; }
+
 .results-panel { padding-bottom: .7rem; }
 .refresh-button { padding: .45rem .65rem; }
 .table-wrap { overflow-x: auto; }
@@ -143,11 +168,15 @@ footer { display: flex; justify-content: space-between; color: #526173; font: .6
     .app-header nav, .environment { display: none; }
     .metrics { grid-template-columns: 1fr 1fr; }
     .workspace-grid { grid-template-columns: 1fr; }
+    .lot-grid { grid-template-columns: 1fr; }
+    .genealogy-summary { grid-template-columns: 1fr 1fr; }
     .topbar { align-items: flex-start; flex-direction: column; }
 }
 @media (max-width: 560px) {
     main { width: calc(100% - 1rem); padding-top: 2rem; }
     .metrics, .form-grid { grid-template-columns: 1fr; }
+    .trace-search { align-items: stretch; flex-direction: column; }
+    .genealogy-summary { grid-template-columns: 1fr; }
     .action-row, footer { flex-direction: column; }
     .flow { align-items: stretch; flex-direction: column; }
     .flow-arrow { transform: rotate(90deg); align-self: center; }

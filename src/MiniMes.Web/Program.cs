@@ -28,6 +28,7 @@ else
 }
 
 builder.Services.AddScoped<TestResultService>();
+builder.Services.AddScoped<TraceabilityService>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddProblemDetails();
 
@@ -79,6 +80,15 @@ testsApi.MapGet("/serial/{serialNumber}", async (
 
 app.MapGet("/api/dashboard", async (TestResultService service, CancellationToken ct) =>
     Results.Ok(await service.GetSummaryAsync(ct)));
+
+app.MapGet("/api/traceability/{serialNumber}", async (
+    string serialNumber,
+    TraceabilityService service,
+    CancellationToken ct) =>
+{
+    var genealogy = await service.GetUnitGenealogyAsync(serialNumber, ct);
+    return genealogy is null ? Results.NotFound() : Results.Ok(genealogy);
+});
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

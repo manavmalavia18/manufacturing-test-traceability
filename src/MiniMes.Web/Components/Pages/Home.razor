@@ -1,6 +1,7 @@
 ﻿@using MiniMes.Web.Domain
 @using MiniMes.Web.Services
 @inject TestResultService TestService
+@inject TraceabilityService TraceabilityService
 @page "/"
 
 <PageTitle>MiniMES | Test & Traceability</PageTitle>
@@ -116,6 +117,57 @@ else
         </section>
     </div>
 
+    <section class="panel traceability-panel">
+        <div class="panel-heading">
+            <div>
+                <span class="section-kicker">UNIT GENEALOGY</span>
+                <h2>Component-level material traceability</h2>
+            </div>
+            <span class="api-pill">GET /api/traceability/{serial}</span>
+        </div>
+
+        <div class="trace-search">
+            <label>
+                Scan or enter a finished-unit serial number
+                <input @bind="_traceSerial" aria-label="Traceability serial number" />
+            </label>
+            <button class="primary-button" @onclick="TraceUnitAsync">Trace unit</button>
+        </div>
+
+        @if (_genealogy is not null)
+        {
+            <div class="genealogy-summary">
+                <div><span>Serial</span><strong>@_genealogy.SerialNumber</strong></div>
+                <div><span>Work order</span><strong>@_genealogy.WorkOrder</strong></div>
+                <div><span>Product family</span><strong>@_genealogy.ProductFamily</strong></div>
+                <div><span>Test attempts</span><strong>@_genealogy.TestHistory.Count</strong></div>
+            </div>
+
+            <div class="lot-grid">
+                @foreach (var lot in _genealogy.MaterialLots)
+                {
+                    <article class="lot-card">
+                        <div class="lot-icon">▦</div>
+                        <div class="lot-title">
+                            <span>@lot.Component</span>
+                            <strong>@lot.PartNumber</strong>
+                        </div>
+                        <dl>
+                            <div><dt>Lot code</dt><dd>@lot.LotCode</dd></div>
+                            <div><dt>Source</dt><dd>@lot.Supplier</dd></div>
+                            <div><dt>Received</dt><dd>@lot.ReceivedDate.ToString("MMM d, yyyy")</dd></div>
+                        </dl>
+                    </article>
+                }
+            </div>
+            <p class="trace-note">Demonstration data · In production, lot records would be captured from receiving and assembly barcode scans.</p>
+        }
+        else if (_traceAttempted)
+        {
+            <div class="trace-empty">No manufacturing record was found for that serial number.</div>
+        }
+    </section>
+
     <section class="panel results-panel">
         <div class="panel-heading">
             <div>
@@ -172,6 +224,9 @@ else
 @code {
     private DashboardSummary? _summary;
     private List<ManufacturingTest> _recent = [];
+    private UnitGenealogy? _genealogy;
+    private string _traceSerial = "SQ-2026-1044";
+    private bool _traceAttempted;
     private string _serialNumber = $"SQ-2026-{Random.Shared.Next(2000, 9999)}";
     private string _station = "FINAL-TEST-01";
     private decimal _voltage = 28.10m;
@@ -180,7 +235,11 @@ else
     private string? _message;
     private ManufacturingTest? _lastSubmission;
 
-    protected override Task OnInitializedAsync() => LoadAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+        await TraceUnitAsync();
+    }
 
     private async Task LoadAsync()
     {
@@ -216,5 +275,11 @@ else
         _temperature = 44.0m;
         _message = "Failure scenario loaded. Run the simulated test to record it.";
         _lastSubmission = null;
+    }
+
+    private async Task TraceUnitAsync()
+    {
+        _traceAttempted = true;
+        _genealogy = await TraceabilityService.GetUnitGenealogyAsync(_traceSerial);
     }
 }

@@ -31,6 +31,7 @@ Manufacturing software has to do more than render a dashboard. Equipment may ret
 3. Configured engineering limits determine Pass or Fail and generate a structured failure reason.
 4. EF Core persists the append-only test record.
 5. The Blazor dashboard shows production metrics, latest results, and investigation details.
+6. Unit genealogy links a finished serial number to component part numbers, supplier lots, receiving dates, and test history.
 
 ```mermaid
 flowchart LR
@@ -94,6 +95,7 @@ Additional endpoints:
 - `GET /api/dashboard`
 - `GET /api/tests/recent?count=20`
 - `GET /api/tests/serial/{serialNumber}`
+- `GET /api/traceability/{serialNumber}`
 
 ## Engineering decisions
 

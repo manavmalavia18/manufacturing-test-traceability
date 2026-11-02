@@ -7,6 +7,7 @@ public sealed class MiniMesDbContext(DbContextOptions<MiniMesDbContext> options)
     : DbContext(options)
 {
     public DbSet<ManufacturingTest> ManufacturingTests => Set<ManufacturingTest>();
+    public DbSet<MaterialLot> MaterialLots => Set<MaterialLot>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -19,5 +20,14 @@ public sealed class MiniMesDbContext(DbContextOptions<MiniMesDbContext> options)
         test.Property(x => x.OutputVoltage).HasPrecision(8, 3);
         test.Property(x => x.TemperatureC).HasPrecision(8, 2);
         test.Property(x => x.FailureReason).HasMaxLength(256);
+
+        var material = modelBuilder.Entity<MaterialLot>();
+        material.HasKey(x => x.Id);
+        material.HasIndex(x => new { x.SerialNumber, x.LotCode });
+        material.Property(x => x.SerialNumber).HasMaxLength(64).IsRequired();
+        material.Property(x => x.Component).HasMaxLength(100).IsRequired();
+        material.Property(x => x.PartNumber).HasMaxLength(64).IsRequired();
+        material.Property(x => x.LotCode).HasMaxLength(64).IsRequired();
+        material.Property(x => x.Supplier).HasMaxLength(100).IsRequired();
     }
 }
