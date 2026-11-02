@@ -1,0 +1,220 @@
+﻿@using MiniMes.Web.Domain
+@using MiniMes.Web.Services
+@inject TestResultService TestService
+@page "/"
+
+<PageTitle>MiniMES | Test & Traceability</PageTitle>
+
+<div class="topbar">
+    <div>
+        <div class="eyebrow">MANUFACTURING EXECUTION · DEMONSTRATION</div>
+        <h1>Test &amp; Traceability</h1>
+        <p>Real-time visibility from test station event to production history.</p>
+    </div>
+    <div class="system-state"><span></span> System operational</div>
+</div>
+
+@if (_summary is null)
+{
+    <div class="loading">Loading production data…</div>
+}
+else
+{
+    <section class="metrics" aria-label="Production metrics">
+        <article class="metric-card">
+            <span>Units tested</span>
+            <strong>@_summary.TotalTests</strong>
+            <small>Current demonstration run</small>
+        </article>
+        <article class="metric-card metric-pass">
+            <span>Pass rate</span>
+            <strong>@_summary.PassRate.ToString("0.0")%</strong>
+            <small>@_summary.Passed units within limits</small>
+        </article>
+        <article class="metric-card metric-fail">
+            <span>Requires review</span>
+            <strong>@_summary.Failed</strong>
+            <small>Traceable failure records</small>
+        </article>
+        <article class="metric-card">
+            <span>Connected stations</span>
+            <strong>3</strong>
+            <small>Last heartbeat 8 seconds ago</small>
+        </article>
+    </section>
+
+    <div class="workspace-grid">
+        <section class="panel event-panel">
+            <div class="panel-heading">
+                <div>
+                    <span class="section-kicker">STATION SIMULATOR</span>
+                    <h2>Record a test event</h2>
+                </div>
+                <span class="api-pill">POST /api/tests</span>
+            </div>
+
+            <div class="form-grid">
+                <label>
+                    Serial number
+                    <input @bind="_serialNumber" aria-label="Serial number" />
+                </label>
+                <label>
+                    Test station
+                    <select @bind="_station" aria-label="Test station">
+                        <option>FINAL-TEST-01</option>
+                        <option>FINAL-TEST-02</option>
+                        <option>BURN-IN-03</option>
+                    </select>
+                </label>
+                <label>
+                    Output voltage (V)
+                    <input type="number" step="0.01" @bind="_voltage" aria-label="Output voltage" />
+                    <small>Acceptable: 27.00–29.00 V</small>
+                </label>
+                <label>
+                    Temperature (°C)
+                    <input type="number" step="0.1" @bind="_temperature" aria-label="Temperature" />
+                    <small>Maximum: 70.0 °C</small>
+                </label>
+            </div>
+
+            <div class="action-row">
+                <button class="primary-button" @onclick="SubmitAsync" disabled="@_submitting">
+                    @(_submitting ? "Recording…" : "Run simulated test")
+                </button>
+                <button class="secondary-button" @onclick="GenerateFailure">Load failure scenario</button>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_message))
+            {
+                <div class="submission-message @(_lastSubmission?.Outcome == TestOutcome.Fail ? "message-fail" : "message-pass")">
+                    <strong>@_message</strong>
+                    @if (_lastSubmission?.FailureReason is not null)
+                    {
+                        <span>@_lastSubmission.FailureReason</span>
+                    }
+                </div>
+            }
+        </section>
+
+        <section class="panel architecture-panel">
+            <span class="section-kicker">EVENT FLOW</span>
+            <h2>Designed for incremental modernization</h2>
+            <div class="flow">
+                <div class="flow-node"><span>01</span><strong>Test station</strong><small>TCP/IP or equipment adapter</small></div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node"><span>02</span><strong>.NET API</strong><small>Validation &amp; idempotency</small></div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node"><span>03</span><strong>SQL Server</strong><small>Durable traceability</small></div>
+            </div>
+            <ul class="design-notes">
+                <li><span>✓</span> Duplicate station events are safely deduplicated</li>
+                <li><span>✓</span> Test history is append-only and searchable</li>
+                <li><span>✓</span> SQL Server/Azure SQL production configuration</li>
+                <li><span>✓</span> Automated domain tests and CI pipeline</li>
+            </ul>
+        </section>
+    </div>
+
+    <section class="panel results-panel">
+        <div class="panel-heading">
+            <div>
+                <span class="section-kicker">LIVE PRODUCTION FEED</span>
+                <h2>Recent test results</h2>
+            </div>
+            <button class="refresh-button" @onclick="LoadAsync">↻ Refresh</button>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Status</th>
+                        <th>Serial number</th>
+                        <th>Station</th>
+                        <th>Voltage</th>
+                        <th>Temperature</th>
+                        <th>Duration</th>
+                        <th>Recorded</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var test in _recent)
+                    {
+                        <tr>
+                            <td><span class="status @test.Outcome.ToString().ToLowerInvariant()">@test.Outcome</span></td>
+                            <td class="serial">@test.SerialNumber</td>
+                            <td>@test.Station</td>
+                            <td>@test.OutputVoltage.ToString("0.00") V</td>
+                            <td>@test.TemperatureC.ToString("0.0") °C</td>
+                            <td>@test.DurationMs ms</td>
+                            <td>@test.RecordedAtUtc.ToLocalTime().ToString("h:mm:ss tt")</td>
+                        </tr>
+                        @if (test.FailureReason is not null)
+                        {
+                            <tr class="failure-detail">
+                                <td></td>
+                                <td colspan="6">↳ @test.FailureReason</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+}
+
+<footer>
+    <span>MiniMES engineering demonstration</span>
+    <span>.NET 10 · Blazor · EF Core · SQL Server/Azure SQL · xUnit</span>
+</footer>
+
+@code {
+    private DashboardSummary? _summary;
+    private List<ManufacturingTest> _recent = [];
+    private string _serialNumber = $"SQ-2026-{Random.Shared.Next(2000, 9999)}";
+    private string _station = "FINAL-TEST-01";
+    private decimal _voltage = 28.10m;
+    private decimal _temperature = 42.3m;
+    private bool _submitting;
+    private string? _message;
+    private ManufacturingTest? _lastSubmission;
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _summary = await TestService.GetSummaryAsync();
+        _recent = await TestService.GetRecentAsync();
+    }
+
+    private async Task SubmitAsync()
+    {
+        _submitting = true;
+        _message = null;
+        try
+        {
+            var submission = new TestSubmission(
+                Guid.NewGuid(), _serialNumber, _station, _voltage, _temperature,
+                Random.Shared.Next(850, 1_500));
+            _lastSubmission = await TestService.SubmitAsync(submission);
+            _message = _lastSubmission.Outcome == TestOutcome.Pass
+                ? $"{_lastSubmission.SerialNumber} passed all configured limits."
+                : $"{_lastSubmission.SerialNumber} requires engineering review.";
+            _serialNumber = $"SQ-2026-{Random.Shared.Next(2000, 9999)}";
+            await LoadAsync();
+        }
+        finally
+        {
+            _submitting = false;
+        }
+    }
+
+    private void GenerateFailure()
+    {
+        _voltage = 30.20m;
+        _temperature = 44.0m;
+        _message = "Failure scenario loaded. Run the simulated test to record it.";
+        _lastSubmission = null;
+    }
+}
