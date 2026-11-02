@@ -1,5 +1,7 @@
 # MiniMES — Manufacturing Test & Traceability
 
+**Live demo:** https://synqor.manavmalavia.org
+
 ![MiniMES dashboard](docs/dashboard.png)
 
 A focused manufacturing execution system (MES) demonstration that captures test-station events, evaluates quality limits, and provides production traceability through a Blazor operations dashboard.
