@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: minimes-synqor-demo
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/dashboard
+    autoDeployTrigger: checksPass
+    domains:
+      - synqor.manavmalavia.org
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production

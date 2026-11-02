@@ -6,6 +6,12 @@ using MiniMes.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var renderPort = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrWhiteSpace(renderPort))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{renderPort}");
+}
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 

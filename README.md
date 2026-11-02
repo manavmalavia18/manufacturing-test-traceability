@@ -50,6 +50,12 @@ dotnet run --project src/MiniMes.Web
 
 Open the local URL printed by ASP.NET Core. With no connection string, the application uses an in-memory demonstration database and seeds representative production results.
 
+## Hosting on Render
+
+The repository includes a `render.yaml` Blueprint for a free Docker-based Render web service. Render supplies the public `PORT`; the application binds to it automatically. The Blueprint also requests the custom domain `synqor.manavmalavia.org` and uses `/api/dashboard` as its health check.
+
+The free service spins down when idle, and the in-memory demonstration data resets whenever the container restarts. This is intentional for a portfolio demo; a persistent deployment would connect the existing EF Core model to SQL Server or Azure SQL.
+
 ### Use SQL Server or Azure SQL
 
 Set the standard .NET connection-string environment variable:
